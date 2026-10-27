@@ -35,7 +35,7 @@ class MainActivity : Activity() {
         }
 
         val description = TextView(this).apply {
-            text = "Supply and demand zones • Fair value gaps"
+            text = "Automatic Supply • Demand • FVG"
             textSize = 16f
             gravity = Gravity.CENTER
             setPadding(0, 16, 0, 24)
@@ -52,12 +52,12 @@ class MainActivity : Activity() {
         }
 
         val captureButton = Button(this).apply {
-            text = "3. Test screen capture"
+            text = "3. Start chart screen capture"
             setOnClickListener { requestScreenCapture() }
         }
 
         val status = TextView(this).apply {
-            text = "Enable overlay permission, then start the floating panel."
+            text = "Approve screen capture when Android asks."
             textSize = 14f
             gravity = Gravity.CENTER
             setPadding(0, 24, 0, 0)
@@ -115,7 +115,7 @@ class MainActivity : Activity() {
         if (!Settings.canDrawOverlays(this)) {
             Toast.makeText(
                 this,
-                "Enable floating overlay permission first",
+                "Enable overlay permission first",
                 Toast.LENGTH_LONG
             ).show()
             requestOverlayPermission()
@@ -123,17 +123,12 @@ class MainActivity : Activity() {
         }
 
         startService(Intent(this, OverlayService::class.java))
-
-        Toast.makeText(
-            this,
-            "Starting ZoneFinder panel",
-            Toast.LENGTH_SHORT
-        ).show()
     }
 
     private fun requestScreenCapture() {
-        val manager = getSystemService(Context.MEDIA_PROJECTION_SERVICE)
-            as MediaProjectionManager
+        val manager = getSystemService(
+            Context.MEDIA_PROJECTION_SERVICE
+        ) as MediaProjectionManager
 
         startActivityForResult(
             manager.createScreenCaptureIntent(),
@@ -151,24 +146,46 @@ class MainActivity : Activity() {
 
         when (requestCode) {
             overlayRequestCode -> {
-                val enabled = Settings.canDrawOverlays(this)
                 Toast.makeText(
                     this,
-                    if (enabled) "Overlay permission enabled"
-                    else "Overlay permission not granted",
+                    if (Settings.canDrawOverlays(this))
+                        "Overlay permission enabled"
+                    else
+                        "Overlay permission not granted",
                     Toast.LENGTH_SHORT
                 ).show()
             }
 
             captureRequestCode -> {
-                Toast.makeText(
-                    this,
-                    if (resultCode == RESULT_OK && data != null)
-                        "Screen capture permission granted for this session"
-                    else
+                if (resultCode == RESULT_OK && data != null) {
+                    val serviceIntent = Intent(
+                        this,
+                        ScreenCaptureService::class.java
+                    ).apply {
+                        putExtra(
+                            ScreenCaptureService.EXTRA_RESULT_CODE,
+                            resultCode
+                        )
+                        putExtra(
+                            ScreenCaptureService.EXTRA_RESULT_DATA,
+                            data
+                        )
+                    }
+
+                    startForegroundService(serviceIntent)
+
+                    Toast.makeText(
+                        this,
+                        "Screen capture started",
+                        Toast.LENGTH_LONG
+                    ).show()
+                } else {
+                    Toast.makeText(
+                        this,
                         "Screen capture cancelled",
-                    Toast.LENGTH_LONG
-                ).show()
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
             }
         }
     }
