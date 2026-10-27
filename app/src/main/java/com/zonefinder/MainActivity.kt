@@ -1,4 +1,3 @@
-
 package com.zonefinder
 
 import android.app.Activity
