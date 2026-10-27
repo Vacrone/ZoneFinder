@@ -27,8 +27,15 @@ jobs:
         with:
           gradle-version: "8.9"
 
+      - name: Check Android manifest
+        run: |
+          echo "Checking manifest file..."
+          cat -n app/src/main/AndroidManifest.xml
+          echo "Checking XML syntax..."
+          python3 -c "import xml.etree.ElementTree as ET; ET.parse('app/src/main/AndroidManifest.xml'); print('Manifest XML syntax is valid')"
+
       - name: Build debug APK
-        run: gradle assembleDebug
+        run: gradle assembleDebug --stacktrace --info
 
       - name: Save APK
         uses: actions/upload-artifact@v4
