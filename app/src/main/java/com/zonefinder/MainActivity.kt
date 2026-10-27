@@ -46,13 +46,18 @@ class MainActivity : Activity() {
             setOnClickListener { requestOverlayPermission() }
         }
 
+        val startButton = Button(this).apply {
+            text = "2. Start floating panel"
+            setOnClickListener { startFloatingPanel() }
+        }
+
         val captureButton = Button(this).apply {
-            text = "2. Test screen capture"
+            text = "3. Test screen capture"
             setOnClickListener { requestScreenCapture() }
         }
 
         val status = TextView(this).apply {
-            text = "Setup required. Screen capture will only start after you approve it."
+            text = "Enable overlay permission, then start the floating panel."
             textSize = 14f
             gravity = Gravity.CENTER
             setPadding(0, 24, 0, 0)
@@ -60,6 +65,7 @@ class MainActivity : Activity() {
 
         layout.addView(heading)
         layout.addView(description)
+
         layout.addView(
             overlayButton,
             LinearLayout.LayoutParams(
@@ -67,6 +73,15 @@ class MainActivity : Activity() {
                 ViewGroup.LayoutParams.WRAP_CONTENT
             )
         )
+
+        layout.addView(
+            startButton,
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+        )
+
         layout.addView(
             captureButton,
             LinearLayout.LayoutParams(
@@ -74,13 +89,18 @@ class MainActivity : Activity() {
                 ViewGroup.LayoutParams.WRAP_CONTENT
             )
         )
+
         layout.addView(status)
         setContentView(layout)
     }
 
     private fun requestOverlayPermission() {
         if (Settings.canDrawOverlays(this)) {
-            Toast.makeText(this, "Overlay permission is enabled", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                this,
+                "Overlay permission is enabled",
+                Toast.LENGTH_SHORT
+            ).show()
             return
         }
 
@@ -91,9 +111,30 @@ class MainActivity : Activity() {
         startActivityForResult(intent, overlayRequestCode)
     }
 
+    private fun startFloatingPanel() {
+        if (!Settings.canDrawOverlays(this)) {
+            Toast.makeText(
+                this,
+                "Enable floating overlay permission first",
+                Toast.LENGTH_LONG
+            ).show()
+            requestOverlayPermission()
+            return
+        }
+
+        startService(Intent(this, OverlayService::class.java))
+
+        Toast.makeText(
+            this,
+            "Starting ZoneFinder panel",
+            Toast.LENGTH_SHORT
+        ).show()
+    }
+
     private fun requestScreenCapture() {
         val manager = getSystemService(Context.MEDIA_PROJECTION_SERVICE)
             as MediaProjectionManager
+
         startActivityForResult(
             manager.createScreenCaptureIntent(),
             captureRequestCode
