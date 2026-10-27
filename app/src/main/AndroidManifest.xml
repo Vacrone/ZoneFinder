@@ -4,6 +4,9 @@
     <uses-permission
         android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
+    <uses-permission
+        android:name="android.permission.FOREGROUND_SERVICE" />
+
     <application
         android:label="ZoneFinder"
         android:allowBackup="false"
@@ -23,6 +26,11 @@
         <service
             android:name=".OverlayService"
             android:exported="false" />
+
+        <service
+            android:name=".ScreenCaptureService"
+            android:exported="false"
+            android:foregroundServiceType="mediaProjection" />
 
     </application>
 </manifest>
